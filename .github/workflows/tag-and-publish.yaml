@@ -8,6 +8,14 @@ on:
       DOCKERHUB_TOKEN:
         required: true
     inputs:
+      dockerfile:
+        type: string
+        required: false
+        default: ./Dockerfile
+      platforms:
+        type: string
+        required: false
+        default: linux/amd64, linux/arm64
       image_name: 
         description: Image name to publish
         type: string
@@ -76,7 +84,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: ./
-          file: Dockerfile
-          platforms: linux/amd64, linux/arm64
+          file: ${{ inputs.dockerfile }}
+          platforms: ${{ inputs.platforms }}
           push: true
           tags: ${{ inputs.image_name }}:${{ inputs.tag }}

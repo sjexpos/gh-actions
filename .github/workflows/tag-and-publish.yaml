@@ -32,12 +32,24 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+      - name: Configure Git user
+        run: |
+          git config user.email "actions@github.com"
+          git config user.name "GitHub Actions"
+      - name: conventional Changelog Action
+        id: changelog
+        uses: TriPSs/conventional-changelog-action@v5
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          skip-on-empty: 'true'
+          skip-commit: 'true'
+          skip-tag: 'true'
       - name: Push Git Tag
         run: |
-          git config user.name "GitHub Actions"
-          git config user.email "github-actions@users.noreply.github.com"
           git tag -am "Tagging for release v${{ inputs.tag }}" v${{ inputs.tag }}
           git push origin v${{ inputs.tag }}
+    outputs:
+      release_notes: ${{ steps.changelog.outputs.clean_changelog }}
 
   releasing:
     name: Create Release
@@ -54,8 +66,7 @@ jobs:
         with:
           tag_name: v${{ inputs.tag }}
           release_name: Release v${{ inputs.tag }}
-          body: |
-            Changes in this Release
+          body: ${{ needs.tagging.outputs.release_notes }}
           draft: false
           prerelease: false  
 
